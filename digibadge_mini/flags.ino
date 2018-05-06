@@ -14,14 +14,14 @@ void drawFlag(int f) {
     #ifdef DEBUG
       Serial.println(F("Displaying LGBT Flag"));
     #endif
-    tft.fillRect(0, 0, 160, 1, ST7735_BLACK);
-    tft.fillRect(0, 1, 160, 21, 0xD801); //Pride Red
+    //tft.fillRect(0, 0, 160, 1, ST7735_BLACK);
+    tft.fillRect(0, 0, 160, 22, 0xD801); //Pride Red
     tft.fillRect(0, 22, 160, 21, 0xFBC1); //Pride Orange
     tft.fillRect(0, 43, 160, 21, 0xFF61); //Pride Yellow
     tft.fillRect(0, 64, 160, 21, 0x0B83); //Pride Green
     tft.fillRect(0, 85, 160, 21, 0x015F); //Pride Roayl Blue
-    tft.fillRect(0, 106, 160, 21, 0x600E); //Pride Violet
-    tft.fillRect(0, 128, 160, 1, ST7735_BLACK);
+    tft.fillRect(0, 106, 160, 22, 0x600E); //Pride Violet
+    //tft.fillRect(0, 128, 160, 1, ST7735_BLACK);
   }
   else if (f == 1) {
     //Bi Flag
