@@ -26,6 +26,7 @@
 #define BKLT 6 //Display backlight pin.
 #define BRIGHT 200 //Display brightness
 #define SDCS 7 //Chip Select for SD card
+#define SDCD 8 //Card Detect line for SD card
 #define FLCS 5 //Chip Select for Flash memory.
 #define BAUD 74880 //Baud rate for serial communication.
                    //I like 74880 because it's what ESP modules use for their debug.
@@ -56,11 +57,12 @@ byte badge = 0; //Current badge. 0 = Yellow, 1 = Red, 2 = Green
 byte flag = 0; //Current flag. 0 = LGBT, 1 = Bi, 2 = Trans, 3 = Pan, 4 = Ace
 byte bobs = 0; //Byte that stores bools as bits.
                 //Bits 0, 1, and 2 are the respective Buttons.
-                //Bit 3 is "SD Present" - For returning if the SD card is in or not.
+                //Bit 3 is "SD Present" - For returning the status of the SD card detector.
                 //Bit 4 is "Reset Timer" - Generally, when we manually change the image in a slideshow.
                 //Bit 5 is "New Display" - Changing badge, changing image, etc
                 //Bit 6 is "Low Battery"
                 //Bit 7 is "Just Woke"
+byte oldbobs = 0; //Storing previous buttons, to check against.
 unsigned int imgnum = 0; //How many images we have.
 unsigned int imgcur = 0; //Current image we are displaying.
 unsigned int imgprev = 0; //For randomly determining image.
@@ -69,6 +71,7 @@ void setup() {
   pinMode(B0, INPUT_PULLUP);
   pinMode(B1, INPUT_PULLUP);
   pinMode(B2, INPUT_PULLUP);
+  pinMode(SDCD, INPUT_PULLUP);
   #ifdef DEBUG
     Serial.begin(BAUD);
     Serial.println(F("DigiBadge Mini"));
@@ -149,9 +152,11 @@ void updateScreen(){
 
 void getButtons() {
   //Uses the first three bits of byte "bobs" as bools for buttons.
+  //Serial comments left out because they're super spammy.
   //#ifdef DEBUG
   //  Serial.println(F("Gathering buttons."));
   //#endif
+  oldbobs = bobs; //Store the previous iterations.  
   //Button 0. Left side facing screen.
   if (digitalRead(B0)){
     bitSet(bobs, 0);
@@ -172,6 +177,25 @@ void getButtons() {
   }
   else {
     bitClear(bobs, 2);
+  }
+  //SD Card Detect
+  if (!digitalRead(SDCD)){
+    //We have an SD card.
+    bitSet(bobs, 3);
+    if (bitRead(bobs, 3) and (!bitRead(oldbobs, 3))){
+      //We now have an SD card, when we didn't before.
+      //Reset the device.
+      forceRST();
+    }
+  }
+  else {
+    bitClear(bobs, 3);
+    if bitRead(oldbobs, 3) {
+      //SD card removed while running.
+      //We can't use images now.
+      imgnum = 0;
+      imgcur = 0;
+    }
   }
 }
 
@@ -221,39 +245,12 @@ void getBattery(){
 }
 
 void runButtons(){
-  //First: Check for sleep. Buttons 1 and 2 at the same time sleep the device.
-  //if ((!bitRead(bobs,1)) and (!bitRead(bobs,2))){
-  //  napTime();
-  //}
-  //Button 0: Previous image/Badge
-  /*
-  if (!bitRead(bobs, 0)){
-    bitSet(bobs, 5); //We're changing things, so we'll need a screen update.
-    if (md == 0){
-      //Badge mode. Previous badge.
-      badge -= 1;
-      if (badge > 2){
-        badge = 2;
-      }
-    }
-    else if ((md == 1) or (md == 2)){
-      //Slideshow or Image mode. Go to the previous image.
-      imgcur -= 1;
-      bitSet(bobs, 4);
-      if ((imgcur > imgnum) or (imgcur == 0)){
-        //We've wrapped around.
-        imgcur = imgnum;
-      }
-    }
-    else if (md == 3){
-      //Flag mode.
-      flag -= 1;
-      if (flag > 4){
-        flag = 4;
-      }
-    }
+  //Button 0 and 2: Reset.
+  if ((!bitRead(bobs, 0)) and (!bitRead(bobs,2))){
+    //Doesn't work very well, but it's worth keeping in for now.
+    forceRST();
   }
-  */
+  
   //Button 0: Power on/off
   if (!bitRead(bobs, 0)){
     napTime();
@@ -266,8 +263,8 @@ void runButtons(){
       //With only one image, we can't really do slideshow mode.
       md = 2;
     }
-    if ((!bitRead(bobs, 3)) and ((md == 1) or (md == 2))){
-      //We don't have an SD card, so skip images.
+    if ((imgnum < 1) and ((md == 1) or (md == 2))){
+      //No SD card, or no images, so skip images.
       md = 3;
     }
     if (md > 3){

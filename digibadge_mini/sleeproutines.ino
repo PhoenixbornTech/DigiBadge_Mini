@@ -1,5 +1,7 @@
 //Routines to sleep and wake the device.
 
+void(* resetNOW)(void) = 0; //Reset function at address 0
+
 void wakeUp()
 {
   // Just a handler for the pin interrupt.
@@ -18,3 +20,16 @@ void napTime()
   delay(300);
   LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF); 
 }
+
+void forceRST()
+{
+  //Resets the board.
+  #ifdef DEBUG
+    Serial.println(F("Resetting..."));
+  #endif
+  //Turn off the backlight, and blank the screen.
+  digitalWrite(6, LOW);
+  tft.fillScreen(ST7735_BLACK);
+  resetNOW();
+}
+

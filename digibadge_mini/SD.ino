@@ -1,36 +1,48 @@
 void startSD(){
   #ifdef DEBUG
-    Serial.print("Initializing SD card...");
+    Serial.print(F("Checking SD Card..."));
   #endif
   tft.setCursor(0, 32);
   tft.print(F("Starting SD Card..."));
   tft.setCursor(0, 40);
-  if (!SD.begin(SDCS)) {
+  //We haven't checked any buttons yet, so do it manually.
+  if (!digitalRead(SDCD)) {
+    //We have an SD card physically present. Attempt to start it.
+    bitSet(bobs, 3); //To prevent from immediately resetting.
+    if (!SD.begin(SDCS)) {
+      //SD present, but SD failed.
+      #ifdef DEBUG
+        Serial.println(F("SD Load Failure"));
+      #endif
+      tft.print(F("SD Load Failure"));
+      return;
+    }
     #ifdef DEBUG
-      Serial.println("failed!");
+      Serial.print(F("Success! "));
     #endif
-    tft.print(F("No card or load failure."));
-    bitClear(bobs, 3);
+    tft.print(F("Success!"));
+    tft.setCursor(0, 48);
+    imgnum = countBMP();
+    tft.print(imgnum);
+    tft.print(F(" valid images found."));
+    #ifdef DEBUG
+      Serial.print(imgnum);
+      Serial.println(F(" valid image files found."));
+    #endif
+    if (imgnum > 0) {
+      //"Current Image" starts at 1. Adjust accordingly.
+      imgcur = 1;
+    }
     return;
   }
-  bitSet(bobs, 3);
-  tft.print(F("Success!"));
-  tft.setCursor(0, 48);
-  #ifdef DEBUG
-    Serial.println("OK!");
-  #endif
-  //Begin sorting.
-  imgnum = countBMP();
-  tft.print(imgnum);
-  tft.print(F(" valid images found."));
-  if (imgnum > 0) {
-    //"Current Image" starts at 1, so make sure we start there if we have images.
-    imgcur = 1;
+  else {
+    //No SD card.
+    #ifdef DEBUG
+      Serial.println(F("No SD Card present"));
+    #endif
+    tft.print(F("No SD Card present."));
+    return;
   }
-  #ifdef DEBUG
-    Serial.print(imgnum);
-    Serial.println(F(" Valid BMPs found"));
-  #endif
 }
 
 unsigned int countBMP(){
