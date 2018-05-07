@@ -2,22 +2,13 @@
 //TODO list:
 //-Backlight Control
 //-TFT controls
-//-TFT startup
-//-Badges & Flags
-//-Slideshow and Images.
 //-Flash startup
-//-SD startup
-//-Buttons
-//So, essentially everything?
-//Try to copy as much as can be done from the V3 code.
-//Perhaps adapt V3 code to be portable with minimal changes?
 
 //Libraries for TFT, SPI, SD, and flash.
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7735.h> // Hardware-specific library
 #include "LowPower.h"
-//#include <TFT_ST7735.h>
-//#include <SPIFlash.h> //Commented out: Not used currently.
+#include <SPIFlash.h>
 #include <SPI.h>
 #include <SD.h>
 
@@ -42,11 +33,12 @@
 #define CLEN 40 //Cycle length. How many times the loop runs before changing the slideshow.
 #define DEBUG //Uncomment for debugging. And by debugging I mean "Serial" 
               //Be warned! It takes a bit of storage space and variable memory.
+              //Current check is ~6% of Program Storage Space and ~6% of dynamic memory.
+#define cver "v1.0" //Code Version.
 
 //Set up TFT and Flash
-//TFT_ST7735 tft = TFT_ST7735(); 
 Adafruit_ST7735 tft = Adafruit_ST7735(10, 9, -1);
-//SPIFlash flash(5); //Commented out: Not in use currently.
+SPIFlash flash(FLCS);
 
 //Prototypes.
 
@@ -75,16 +67,14 @@ void setup() {
   #ifdef DEBUG
     Serial.begin(BAUD);
     Serial.println(F("DigiBadge Mini"));
+    Serial.print(F("Software "));
+    Serial.println(F(cver));
     Serial.println(F("Debug Engabled"));
   #endif
   startTFT();
   startSD();
+  startFlash();
   delay(2500); //Pause so we can actually SEE the screen.
-  //Load settings from Flash
-  //Commented out due to issues with flash chips.
-  //loadSettings();
-  //Make sure they're valid.
-  //validSettings();
   updateScreen();
 }
 
@@ -137,7 +127,9 @@ void loop() {
 }
 
 void updateScreen(){
-  //saveSettings();
+  if (md > 3){
+    md = 0; //Just to be sure.
+  }
   if (md == 0){
     //Badge Mode.
     drawBadge(badge);
@@ -244,13 +236,7 @@ void getBattery(){
   }
 }
 
-void runButtons(){
-  //Button 0 and 2: Reset.
-  if ((!bitRead(bobs, 0)) and (!bitRead(bobs,2))){
-    //Doesn't work very well, but it's worth keeping in for now.
-    forceRST();
-  }
-  
+void runButtons(){  
   //Button 0: Power on/off
   if (!bitRead(bobs, 0)){
     napTime();
@@ -298,6 +284,11 @@ void runButtons(){
         flag = 0;
       }
     }
+  }
+  //Save our settings on a button press.
+  if (!bitRead(bobs, 0) or !bitRead(bobs, 1) or !bitRead(bobs, 2)){
+    x = 0; //Reset our timer so we don't change too quickly.
+    saveSettings();
   }
 }
 

@@ -2,9 +2,9 @@ void startSD(){
   #ifdef DEBUG
     Serial.print(F("Checking SD Card..."));
   #endif
-  tft.setCursor(0, 32);
+  tft.setCursor(0, 36);
   tft.print(F("Starting SD Card..."));
-  tft.setCursor(0, 40);
+  tft.setCursor(0, 45);
   //We haven't checked any buttons yet, so do it manually.
   if (!digitalRead(SDCD)) {
     //We have an SD card physically present. Attempt to start it.
@@ -21,7 +21,7 @@ void startSD(){
       Serial.print(F("Success! "));
     #endif
     tft.print(F("Success!"));
-    tft.setCursor(0, 48);
+    tft.setCursor(0, 54);
     imgnum = countBMP();
     tft.print(imgnum);
     tft.print(F(" valid images found."));

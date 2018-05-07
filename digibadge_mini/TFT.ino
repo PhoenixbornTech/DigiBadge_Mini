@@ -15,12 +15,14 @@ void startTFT() {
   tft.setTextSize(1);
   tft.setCursor(0, 0);
   tft.print(F("DigiBadge Mini Starting..."));
-  tft.setCursor(0, 8);
+  tft.setCursor(0, 9);
   tft.print(F("Made in 2018 by"));
-  tft.setCursor(0, 16);
+  tft.setCursor(0, 18);
   tft.print(F("Phoenixborn Technologies"));
-  tft.setCursor(0, 24);
+  tft.setCursor(0, 27);
   tft.print(F("http://www.pbtech.biz"));
+  tft.setCursor(133, 120);
+  tft.print(cver);
   pinMode(BKLT, OUTPUT);
   setLight(BRIGHT);
   #ifdef DEBUG
