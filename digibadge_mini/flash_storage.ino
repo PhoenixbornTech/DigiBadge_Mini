@@ -1,76 +1,66 @@
-//Saving and retrieving storage will go here.
-//Some issues have shown up with flash memory not working
-//And by some issues I mean the chip isn't being seen at all.
-/*
-#define FPage 1 //Page of Flash memory we use.
-#define mdByte 1 //Byte offset (0-255) for which byte is the Mode.
-#define bdByte 2 //Byte offset for which badge we are using.
-#define flByte 3 //Byte offset for which flag we are using.
-#define imgByte 4 //Byte offset for image name.
+//Saving and restoring settings, for when power is removed.
 
-//flash.eraseSector(page, 0);
+void startFlash() {
+  #ifdef DEBUG
+    Serial.println(F("Starting flash memory..."));
+  #endif
+  flash.begin();
+  readSettings();
+}
 
-//flash.writeByte(page, offset, dataByte) //Writes a byte
+//We need precisely five flash functions: Read byte, write byte, read int, write int, and erase sector.
+//Set up some defines for where we store things.
+#define mdAddr 1 //Mode: Address 1
+#define bdAddr 2 //Badge: Address 2
+#define flAddr 3 //Flag: Address 3
+#define curAddr 4 //Current image address: 4
 
-//flash.readByte(page, offset) //Returns Byte
-//      flash.readStr(page, offset, outputString);
-//      flash.writeStr(page, offset, inputString)
+//Now we want to read the information.
+void readSettings(){
+  //Only done on startup.
+  //Comes after SD card startup.
+  #ifdef DEBUG
+    Serial.println(F("Loading Settings"));
+  #endif
+  tft.setCursor(0, 63);
+  tft.print(F("Loading Settings"));
+  md = flash.readByte(mdAddr); //Mode
+  if (!bitRead(bobs, 3) or (imgnum == 0)) {
+    //We have no images to load.
+    if ((md == 1) or (md == 2)){
+      md = 0; //Reset back to Badge mode.
+    }
+  }
+  badge = flash.readByte(bdAddr); //Badge
+  flag = flash.readByte(flAddr); //Flag
+  if (imgnum > 0) {
+    //Only do these if we have a loaded SD card.
+    imgcur = flash.readWord(curAddr); //Current image.
+    if ((imgcur > imgnum) or (imgcur == 0)) {
+      //We swapped out our SD cards, apparently. Reset the image number.
+      //Either that or we loaded up after not having an SD card.
+      imgcur = 1;
+    }
+  }
+  tft.print(F("..Done"));
+  return;
+}
 
 void saveSettings(){
   #ifdef DEBUG
     Serial.println(F("Saving settings..."));
   #endif
-  String imgname;
-  imgname = String(grabBMP(imgcur));
-  Serial.println(imgname);
-  //Erase the page. 
-  flash.eraseSector(FPage, 0);
-  //Write our mode.
-  flash.writeByte(FPage, mdByte);
-  //Write our badge.
-  flash.writeByte(FPage, bdByte);
-  //Write our flag.
-  flash.writeByte(FPage, flByte);
-  //Write what image we were on.
-  flash.writeStr(FPage, imgByte, imgname);
+  flash.eraseSector(1); //We need to clear things first.
+  flash.writeByte(mdAddr, md); //Save our mode.
+  flash.writeByte(bdAddr, badge); //Save our current badge.
+  flash.writeByte(flAddr, flag); //Save our current flag.
+  if (bitRead(bobs, 3) and (imgnum > 0)) {
+    //Save our current image.
+    flash.writeWord(curAddr, imgcur);
+  }
+  else {
+    //We have no current image.
+    flash.writeWord(curAddr, 0);
+  }
+  return;
 }
-
-void validSettings(){
-  //Validates that the settings we loaded are accurate.
-  if(md > 3){
-    md = 0;
-  }
-  if(badge > 2){
-    badge = 0;
-  }
-  if(flag > 4){
-    flag = 0;
-  }
-  if (imgcur > imgnum){
-    imgcur = 1;
-  }
-}
-
-void loadSettings(){
-  #ifdef DEBUG
-    Serial.println(F("Loading settings..."));
-  #endif
-  //Load mode.
-  md = flash.readByte(FPage, byte(mdByte));
-  //Load badge.
-  badge = flash.readByte(FPage, byte(bdByte));
-  //Load flag.
-  flag = flash.readByte(FPage, byte(flByte));
-  //Load what image we are on.
-  String imgload;
-  flash.readStr(FPage, imgByte, imgload);
-  char timg[sizeof(imgload)];
-  imgload.toCharArray(timg, sizeof(imgload));
-  //Find if we have it, and what number it is.
-  unsigned int nimg;
-  nimg = numBMP(timg);
-  if (nimg != 0){
-    imgcur = nimg;
-  }
-}*/
-
