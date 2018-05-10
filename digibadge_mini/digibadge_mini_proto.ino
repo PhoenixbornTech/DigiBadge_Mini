@@ -31,7 +31,7 @@
 #define LLEN 125 //Milliseconds the loop waits for.
 #define VLEN 16 //Number of cycles before checking battery. 16 cycles at 125ms is about once every two seconds..
 #define CLEN 40 //Cycle length. How many times the loop runs before changing the slideshow.
-#define DEBUG //Uncomment for debugging. And by debugging I mean "Serial" 
+//#define DEBUG //Uncomment for debugging. And by debugging I mean "Serial" 
               //Be warned! It takes a bit of storage space and variable memory.
               //Current check is ~6% of Program Storage Space and ~6% of dynamic memory.
 #define cver "v1.0" //Code Version.
@@ -127,7 +127,7 @@ void loop() {
 }
 
 void updateScreen(){
-  if (md > 3){
+  if (md > 4){
     md = 0; //Just to be sure.
   }
   if (md == 0){
@@ -140,6 +140,9 @@ void updateScreen(){
   else if (md == 3){
     drawFlag(flag);
   }
+  /*else if (md == 4){
+    drawMenu(menu, sel);
+  }*/
 }
 
 void getButtons() {
@@ -236,7 +239,12 @@ void getBattery(){
   }
 }
 
-void runButtons(){  
+void runButtons(){
+  //NOTE: WILL NEED RE-DOING FOR MENU SYSTEM.
+  //Menu system will be:
+  //In mode: Left/Right change badge/flag/etc
+  //Center enters menu.
+  //Menu then... menus.
   //Button 0: Power on/off
   if (!bitRead(bobs, 0)){
     napTime();
