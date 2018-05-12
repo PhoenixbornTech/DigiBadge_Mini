@@ -2,62 +2,25 @@ void startSD(){
   #ifdef DEBUG
     Serial.print(F("Checking SD Card..."));
   #endif
-  tft.setCursor(0, 36);
-  tft.print(F("Starting SD Card..."));
-  tft.setCursor(0, 45);
   //We haven't checked any buttons yet, so do it manually.
   if (!digitalRead(SDCD)) {
     //We have an SD card physically present. Attempt to start it.
     bitSet(bobs, 3); //To prevent from immediately resetting.
-    if (!SD.begin(SDCS)) {
-      //SD present, but SD failed.
-      #ifdef DEBUG
-        Serial.println(F("SD Load Failure"));
-      #endif
-      tft.print(F("SD Load Failure"));
-      return;
+    if (SD.begin(SDCS)) {
+      imgnum = countBMP();
+      if (imgnum > 0) {
+        //"Current Image" starts at 1. Adjust accordingly.
+        imgcur = 1;
+      }
     }
-    #ifdef DEBUG
-      Serial.print(F("Success! "));
-    #endif
-    tft.print(F("Success!"));
-    tft.setCursor(0, 54);
-    imgnum = countBMP();
-    tft.print(imgnum);
-    tft.print(F(" valid images found."));
-    #ifdef DEBUG
-      Serial.print(imgnum);
-      Serial.println(F(" valid image files found."));
-    #endif
-    if (imgnum > 0) {
-      //"Current Image" starts at 1. Adjust accordingly.
-      imgcur = 1;
-    }
-    return;
-  }
-  else {
-    //No SD card.
-    #ifdef DEBUG
-      Serial.println(F("No SD Card present"));
-    #endif
-    tft.print(F("No SD Card present."));
-    return;
   }
 }
 
 unsigned int countBMP(){
   unsigned int bmpcount = 0;
-  //"Good" BMP files are moved to the "MiniBMP" folder.
-  //All other files and folders are ignored.
-  //First, make sure the "MiniBMP" folder exists
-  #ifdef DEBUG
-    Serial.println(F("Counting files on SD Card"));
-  #endif
   //Open directory, then rewind it. Just in case someone hasn't been kind.
   File dir = SD.open("/");
   dir.rewindDirectory();
-  char* nameHolder;
-  bool check = false;
   //Start checking files.
   File fi = dir.openNextFile();
   while (fi) {
@@ -80,14 +43,9 @@ unsigned int countBMP(){
 bool bmpCheck(File bmpFile) {
    //Check a File to see if it's an appropriate BMP file.
    //Silently fail directories.
-   if (bmpFile.isDirectory()){
-    return false; 
-   }
-   #ifdef DEBUG
-     Serial.print(F("Checking file '"));
-     Serial.print(bmpFile.name());
-     Serial.print(F("'..."));
-   #endif
+   //if (bmpFile.isDirectory()){
+   // return false; 
+   //}
    if (read16(bmpFile) == 0x4D42) { // BMP signature
     (void)read32(bmpFile); //Read, but ignore, file size.
     (void)read32(bmpFile); //Same with creator bytes
@@ -99,26 +57,15 @@ bool bmpCheck(File bmpFile) {
     //Now the important stuff!
     //First is Bit Depth and second is Compression.
     if((read16(bmpFile) == 24) && (read32(bmpFile) == 0)){
-      //bmpFile.close(); //We don't need the file anymore.
-      #ifdef DEBUG
-      Serial.println(F("File is a 24-bit BMP"));
-      #endif
       return true;
     }
-    else {
+    //else {
       //Not a 24-bit BMP file.
-      //bmpFile.close();
-      #ifdef DEBUG
-        Serial.println(F("File is not a 24-bit BMP"));
-      #endif
-      return false;
-    }
+    //  return false;
+    //}
   }
   else {
-    //bmpFile.close();
-    #ifdef DEBUG
-      Serial.println(F("File is not a BMP"));
-    #endif
+    //File is not a BMP
     return false;
   }
 }
@@ -141,7 +88,7 @@ unsigned int randBMP(){
   }
   else {
     unsigned int res = random(1,imgnum+1);
-    while ((res == imgcur) or (res == imgprev)){
+    while (res == imgcur){
       res = random(1,imgnum+1);
     }
     return res;

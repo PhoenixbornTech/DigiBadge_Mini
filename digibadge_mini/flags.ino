@@ -2,13 +2,14 @@ void drawFlag(int f) {
   //Draws a particular flag.
   //Flags are various sexual Pride flags.
   //Valid numbers are 0-4
+  /* //Commenting out to save space.
   if ((f > 4) or (f < 0)) {
     //Clamp to 0-4
     #ifdef DEBUG
       Serial.println(F("Invalid flag! Defaulting to LGBT"));
     #endif
     f = 0;
-  }
+  }*/
   if (f == 0) {
     //LGBT Pride flag
     #ifdef DEBUG

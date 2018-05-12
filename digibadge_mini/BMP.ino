@@ -15,7 +15,7 @@ void bmpDraw(char *filename, uint8_t x, uint8_t y) {
   uint32_t rowSize;               // Not always = bmpWidth; may have padding
   uint8_t  sdbuffer[3*BUFFPIXEL]; // pixel buffer (R+G+B per pixel)
   uint8_t  buffidx = sizeof(sdbuffer); // Current position in sdbuffer
-  boolean  goodBmp = false;       // Set to true on valid header parse
+  //boolean  goodBmp = false;       // Set to true on valid header parse
   boolean  flip    = true;        // BMP is stored bottom-to-top
   int      w, h, row, col;
   uint8_t  r, g, b;
@@ -59,7 +59,7 @@ void bmpDraw(char *filename, uint8_t x, uint8_t y) {
       #endif
       if((bmpDepth == 24) && (read32(bmpFile) == 0)) { // 0 = uncompressed
 
-        goodBmp = true; // Supported BMP format -- proceed!
+        //goodBmp = true; // Supported BMP format -- proceed!
         #ifdef DEBUG
           Serial.print("Image size: ");
           Serial.print(bmpWidth);
@@ -127,9 +127,6 @@ void bmpDraw(char *filename, uint8_t x, uint8_t y) {
   }
 
   bmpFile.close();
-  #ifdef DEBUG
-    if(!goodBmp) Serial.println("BMP format not recognized.");
-  #endif
 }
 
 uint16_t Color565(uint8_t r, uint8_t g, uint8_t b) {

@@ -42,8 +42,8 @@ void drawBadge(int b) {
     tft.print(F("YELLOW"));
   }
   //Set colors back to default.
-  tft.setTextSize(1);
-  tft.setTextColor(ST7735_WHITE);
+  //tft.setTextSize(1);
+  //tft.setTextColor(ST7735_WHITE);
   if (bitRead(bobs,6)) {
     //If our battery is low, show the low battery symbol
     drawLowBat(0, 0);

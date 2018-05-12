@@ -14,6 +14,8 @@ void startFlash() {
 #define bdAddr 2 //Badge: Address 2
 #define flAddr 3 //Flag: Address 3
 #define curAddr 4 //Current image address: 4
+#define brAddr 6 //Current brightness address: 6 (Image takes 2 bytes)
+#define scyAddr 7 //Slideshow cycle count: 7
 
 //Now we want to read the information.
 void readSettings(){
@@ -22,8 +24,8 @@ void readSettings(){
   #ifdef DEBUG
     Serial.println(F("Loading Settings"));
   #endif
-  tft.setCursor(0, 63);
-  tft.print(F("Loading Settings"));
+  //tft.setCursor(0, 63);
+  //tft.print(F("Loading Settings"));
   md = flash.readByte(mdAddr); //Mode
   if (!bitRead(bobs, 3) or (imgnum == 0)) {
     //We have no images to load.
@@ -42,7 +44,15 @@ void readSettings(){
       imgcur = 1;
     }
   }
-  tft.print(F("..Done"));
+  bright = flash.readByte(brAddr);
+  if (bright == 0){
+    bright == 200; //"0" would show nothing. So set it to "Default"
+  }
+  scycles = flash.readByte(scyAddr);
+  if (scycles == 0){
+    scycles = 40; //"0" would continually cycle. Set to default of 5s.
+  }
+  //tft.print(F("..Done"));
   return;
 }
 
@@ -62,5 +72,7 @@ void saveSettings(){
     //We have no current image.
     flash.writeWord(curAddr, 0);
   }
+  flash.writeByte(brAddr, bright); //Brightness
+  flash.writeByte(scyAddr, scycles); //Slideshow Cycles.
   return;
 }
