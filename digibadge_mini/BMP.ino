@@ -7,7 +7,7 @@
 void bmpDraw(char *filename, uint8_t x, uint8_t y) {
 
   File     bmpFile;
-  int      bmpWidth, bmpHeight;   // W+H in pixels
+  uint8_t      bmpWidth, bmpHeight;   // W+H in pixels
   uint32_t fsize;
   uint8_t  bmpDepth;              // Bit depth (currently must be 24)
   uint32_t bmpImageoffset;        // Start of image data in file
@@ -15,57 +15,29 @@ void bmpDraw(char *filename, uint8_t x, uint8_t y) {
   uint32_t rowSize;               // Not always = bmpWidth; may have padding
   uint8_t  sdbuffer[3*BUFFPIXEL]; // pixel buffer (R+G+B per pixel)
   uint8_t  buffidx = sizeof(sdbuffer); // Current position in sdbuffer
-  boolean  goodBmp = false;       // Set to true on valid header parse
+  //boolean  goodBmp = false;       // Set to true on valid header parse
   boolean  flip    = true;        // BMP is stored bottom-to-top
-  int      w, h, row, col;
+  uint8_t      w, h, row, col;
   uint8_t  r, g, b;
   uint32_t pos = 0, startTime = millis();
 
   if((x >= tft.width()) || (y >= tft.height())) return;
-  #ifdef DEBUG
-    Serial.println();
-    Serial.print("Loading image '");
-    Serial.print(filename);
-    Serial.println('\'');
-  #endif
   // Open requested file on SD card
   if ((bmpFile = SD.open(filename)) == NULL) {
-    #ifdef DEBUG
-      Serial.println("File not found");
-    #endif
     return;
   }
 
   // Parse BMP header
   if(read16(bmpFile) == 0x4D42) { // BMP signature
     fsize = read32(bmpFile);
-    #ifdef DEBUG
-      Serial.print("File size: "); Serial.println(fsize);
-    #endif
     (void)read32(bmpFile); // Read & ignore creator bytes
     bmpImageoffset = read32(bmpFile); // Start of image data
     bmpHeaderSize = read32(bmpFile);
-    #ifdef DEBUG
-      Serial.print("Image Offset: "); Serial.println(bmpImageoffset, DEC);
-      // Read DIB header
-      Serial.print("Header size: "); Serial.println(bmpHeaderSize);
-    #endif
     bmpWidth  = read32(bmpFile);
     bmpHeight = read32(bmpFile);
     if(read16(bmpFile) == 1) { // # planes -- must be '1'
       bmpDepth = read16(bmpFile); // bits per pixel
-      #ifdef DEBUG
-        Serial.print("Bit Depth: "); Serial.println(bmpDepth);
-      #endif
       if((bmpDepth == 24) && (read32(bmpFile) == 0)) { // 0 = uncompressed
-
-        goodBmp = true; // Supported BMP format -- proceed!
-        #ifdef DEBUG
-          Serial.print("Image size: ");
-          Serial.print(bmpWidth);
-          Serial.print('x');
-          Serial.println(bmpHeight);
-        #endif
 
         // BMP rows are padded (if needed) to 4-byte boundary
         rowSize = (bmpWidth * 3 + 3) & ~3;
@@ -117,19 +89,11 @@ void bmpDraw(char *filename, uint8_t x, uint8_t y) {
             tft.pushColor(Color565(r,g,b));
           } // end pixel
         } // end scanline
-        #ifdef DEBUG
-          Serial.print("Loaded in ");
-          Serial.print(millis() - startTime);
-          Serial.println(" ms");
-        #endif
       } // end goodBmp
     }
   }
 
   bmpFile.close();
-  #ifdef DEBUG
-    if(!goodBmp) Serial.println("BMP format not recognized.");
-  #endif
 }
 
 uint16_t Color565(uint8_t r, uint8_t g, uint8_t b) {

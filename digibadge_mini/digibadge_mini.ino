@@ -7,21 +7,17 @@
 //Libraries for TFT, SPI, SD, and flash.
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7735.h> // Hardware-specific library
-#include "LowPower.h"
-#include <SPIFlash.h>
-#include <SPI.h>
+#include <LowPower.h>
+#include <SPIFlash.h> //https://github.com/Marzogh/SPIFlash
+#include <SPI.h>1
 #include <SD.h>
 
 //Defines.
 //TFT CS is 10, DC is 9. TFT reset is tied to board reset.
 #define BKLT 6 //Display backlight pin.
-#define BRIGHT 200 //Display brightness
 #define SDCS 7 //Chip Select for SD card
 #define SDCD 8 //Card Detect line for SD card
 #define FLCS 5 //Chip Select for Flash memory.
-#define BAUD 74880 //Baud rate for serial communication.
-                   //I like 74880 because it's what ESP modules use for their debug.
-                   //And I can keep everything on one setting.
 #define B0 2 //Button 0, or far left when viewing screen
 #define B1 3 //Button 1, or center button
 #define B2 4 //Button 2, or far right/next to SD card
@@ -31,22 +27,28 @@
 #define LLEN 125 //Milliseconds the loop waits for.
 #define VLEN 16 //Number of cycles before checking battery. 16 cycles at 125ms is about once every two seconds..
 #define CLEN 40 //Cycle length. How many times the loop runs before changing the slideshow.
-#define DEBUG //Uncomment for debugging. And by debugging I mean "Serial" 
+//#define DEBUG //Uncomment for debugging. And by debugging I mean "Serial" 
               //Be warned! It takes a bit of storage space and variable memory.
               //Current check is ~6% of Program Storage Space and ~6% of dynamic memory.
-#define cver "v1.0" //Code Version.
 
 //Set up TFT and Flash
 Adafruit_ST7735 tft = Adafruit_ST7735(10, 9, -1);
 SPIFlash flash(FLCS);
 
-//Prototypes.
+//Common strings.
+#define cver F("v1.1") //Code version.
 
 //Variables.
-int x = 0;
+byte x = 0;
+byte scycles = 40; //Number of cycles it waits for slideshow.
+byte bright = 10; //Brightness amount, in percent
 byte md = 0; //Mode: 0 = Badge, 1 = Slideshow, 2 = Static Image, 3 = Flags
+byte oldmd = 0; //Old mode. For when you enter the menu and just want to exit it.
 byte badge = 0; //Current badge. 0 = Yellow, 1 = Red, 2 = Green
 byte flag = 0; //Current flag. 0 = LGBT, 1 = Bi, 2 = Trans, 3 = Pan, 4 = Ace
+byte menu = 0; //Current menu. 0 = main, 1 = slide speed, 2 = brightness, 3 = device info
+byte select = 0; //Current menu selection. Line number. 0 = off.
+byte oldselect = 0; //Old selection. For quickly re-displaying cursor.
 byte bobs = 0; //Byte that stores bools as bits.
                 //Bits 0, 1, and 2 are the respective Buttons.
                 //Bit 3 is "SD Present" - For returning the status of the SD card detector.
@@ -55,25 +57,17 @@ byte bobs = 0; //Byte that stores bools as bits.
                 //Bit 6 is "Low Battery"
                 //Bit 7 is "Just Woke"
 byte oldbobs = 0; //Storing previous buttons, to check against.
-unsigned int imgnum = 0; //How many images we have.
-unsigned int imgcur = 0; //Current image we are displaying.
-unsigned int imgprev = 0; //For randomly determining image.
+uint16_t imgnum = 0; //How many images we have.
+uint16_t imgcur = 0; //Current image we are displaying.
 
 void setup() {
   pinMode(B0, INPUT_PULLUP);
   pinMode(B1, INPUT_PULLUP);
   pinMode(B2, INPUT_PULLUP);
   pinMode(SDCD, INPUT_PULLUP);
-  #ifdef DEBUG
-    Serial.begin(BAUD);
-    Serial.println(F("DigiBadge Mini"));
-    Serial.print(F("Software "));
-    Serial.println(F(cver));
-    Serial.println(F("Debug Engabled"));
-  #endif
-  startTFT();
-  startSD();
   startFlash();
+  startSD();
+  startTFT();
   delay(2500); //Pause so we can actually SEE the screen.
   updateScreen();
 }
@@ -83,9 +77,6 @@ void loop() {
   x += 1;
   if (bitRead(bobs, 7)) {
     //We just woke up, so remove the interrupt and turn the screen back on.
-    #ifdef DEBUG
-      Serial.println(F("Waking")); 
-    #endif
     detachInterrupt(BWK); //Remove the interrupt.
     digitalWrite(6, HIGH);
     bitClear(bobs,7);
@@ -103,7 +94,7 @@ void loop() {
     //Check voltage.
     getBattery();
   }
-  if (x > CLEN){
+  if (x > scycles){
     if (md == 1){
       //Change image if we're in slideshow mode.
       imgcur = randBMP();
@@ -127,7 +118,7 @@ void loop() {
 }
 
 void updateScreen(){
-  if (md > 3){
+  if (md > 4){
     md = 0; //Just to be sure.
   }
   if (md == 0){
@@ -140,14 +131,13 @@ void updateScreen(){
   else if (md == 3){
     drawFlag(flag);
   }
+  else if (md == 4){
+    drawMenu(menu, select);
+  }
 }
 
 void getButtons() {
   //Uses the first three bits of byte "bobs" as bools for buttons.
-  //Serial comments left out because they're super spammy.
-  //#ifdef DEBUG
-  //  Serial.println(F("Gathering buttons."));
-  //#endif
   oldbobs = bobs; //Store the previous iterations.  
   //Button 0. Left side facing screen.
   if (digitalRead(B0)){
@@ -191,7 +181,7 @@ void getButtons() {
   }
 }
 
-void getBattery(){
+long getBattery(){
   //Retrieves the voltage of the batteries.
   //Using method prodivded at http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/
   //Read the 1.1V internal reference against AVcc
@@ -204,18 +194,10 @@ void getBattery(){
   uint8_t high = ADCH; // unlocks both
   long mV = (high << 8) | low;
   mV = 1125300L / mV; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
-  //#ifdef DEBUG
-  //  Serial.print(F("Battery voltage is "));
-  //  Serial.print(mV);
-  //  Serial.println(F(" millivolts"));
-  //#endif
   if (mV <= LowV){
     //We have low voltage.
     //Batteries are still fairly good, but backlight power starts waning quite fast.
     bitSet(bobs, 6);
-    #ifdef DEBUG
-      Serial.println(F("WARNING: Low batteries!"));
-    #endif
   }
   else if ((mV > (LowV + 250)) and bitRead(bobs, 6)){
     //If "Low Battery" bit is set, and we are now higher than the Low Voltage, clear the low battery alert.
@@ -226,68 +208,229 @@ void getBattery(){
   if (mV <= CritV){
     //We turn off at this point.
     //As we check the battery voltage fairly often, we can just shut off.
-    #ifdef DEBUG
-      Serial.println(F("Battery critical, shutting down."));
-    #endif
     digitalWrite(6, LOW);
     attachInterrupt(BWK, wakeUp, LOW);
     delay(300);
     LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF); 
   }
+  return mV;
 }
 
-void runButtons(){  
-  //Button 0: Power on/off
-  if (!bitRead(bobs, 0)){
-    napTime();
-  }
-  //Button 1: Next mode
+void runButtons(){
+  //New, for Menus!
+  //Improvements: "else if" instead of "if"
+  //Ensures proper button priority.
+  //bitSet(bobs, 5); //Menus won't require full screen reset.
   if (!bitRead(bobs, 1)){
-    bitSet(bobs, 5); //We're changing things, so we'll need a screen update.
-    md += 1;
-    if ((md == 1) and (imgnum == 1)){
-      //With only one image, we can't really do slideshow mode.
-      md = 2;
+    //Button 1 (Center)
+    //Most important button!
+    bitSet(bobs, 5); //We're changing menus, or modes.
+    //If we're in a non-Menu mode, bring us to Menu mode.
+    if(md != 4){
+      md = 4;
+      menu = 0;
+      select = 1;
     }
-    if ((imgnum < 1) and ((md == 1) or (md == 2))){
-      //No SD card, or no images, so skip images.
-      md = 3;
-    }
-    if (md > 3){
-      md = 0;
-    }
-  }
-  //Button 2: Next image/badge 
-  if (!bitRead(bobs, 2)){
-    bitSet(bobs, 5); //We're changing things, so we'll need a screen update.
-    if (md == 0){
-      //Badge mode. Previous badge.
-      badge += 1;
-      if (badge > 2){
-        badge = 0;
+    else if(md == 4){
+      //Do the thing. For the menu.
+      if (menu == 0){
+        if(select == 1){
+          md = 0; //Enter Badge Mode.
+        }
+        else if (select == 2){
+          md = 3; //Enter Flag Mode.
+        }
+        else if ((select == 3) and (imgnum > 0)){
+          md = 2; //Enter Image mode, but only if we have images.
+        }
+        else if ((select == 4) and (imgnum > 1)){
+          md = 1; //Enter Slideshow mode, but only if we have images.
+          x = 0; //Reset our timer, just in case.
+        }
+        else if ((select == 4) and (imgnum == 1)){
+          md = 2; //Enter image mode for one image.
+        }
+        else if (select == 5){
+          menu = 3; //Device Info
+          select = 0;
+        }
+        else if (select == 6){
+          menu = 1; //Slideshow speed
+          select = 1;
+        }
+        else if (select == 7){
+          menu = 2; //Brightness.
+          select = 1;
+        }
+        else if (select == 8){
+          md = oldmd; //Make sure we wake up in our old mode.
+          //saveSettings(); //Save settings. Shouldn't be needed, but we ARE turning off, so...
+          napTime();
+        }
+        if(((select >=1) and (select <= 4)) or (select == 8)){
+          //We're selecting a mode, OR shutting down.
+          saveSettings();
+        }
+      }
+      else if (menu == 1){
+        //Slideshow speed!
+        if((select > 0) and (select < 13)){
+          //We're selecting a delay.
+          scycles = 8 * select; //Yay simple!
+          x = 0; //Reset to 0 for slideshow shenanigans.
+          select = 1;
+          menu = 0;
+        }
+        else {
+          //Exiting this menu.
+          select = 1;
+          menu = 0;
+        }
+      }
+      else if (menu == 2){
+        //Brightness
+        if((select > 0) and (select < 11)){
+          //We're selecting a brightness.
+          bright = 10 * select;
+          setLight(bright);
+          //So, to easily see results and change them
+          //DON'T exit tue current menu.
+          //Also don't redraw it.
+          bitClear(bobs, 5);
+        }
+        else {
+          //Exit this menu. Save settings.
+          select = 1;
+          menu = 0;
+        }
+      }
+      else if (menu == 3){
+        //Device Info!
+        //Simply return to main menu.
+        select = 1;
+        menu = 0;
       }
     }
-    else if ((md == 1) or (md == 2)){
-      //Slideshow or Image mode. Go to the previous image.
-      imgcur += 1;
-      bitSet(bobs, 4);
-      if ((imgcur > imgnum) or (imgcur == 0)){
-        //We're too high on our count..
+  }
+  else if (!bitRead(bobs, 0)){
+    //Button 0 (Far left when looking at screen)
+    if (md == 0){
+      //Badge mode. Decrese badge by one.
+      badge -= 1;
+      if (badge > 2){
+        //Only three badges.
+        badge = 2; //We're decreasing, so go to the highest.
+      }
+    }
+    else if (md == 1){
+      //Slideshow!
+      //New random image.
+      imgcur = randBMP();
+    }
+    else if (md == 2){
+      //Still image.
+      imgcur -= 1; //Reduce by one!
+      if (imgcur > imgnum){
+        //We've wrapped around.
+        imgcur = imgnum;
+      }
+    }
+    else if (md == 3){
+      //Flags!
+      flag -= 1;
+      if (flag > 4){
+        //Wrap around
+        flag = 4;
+      }
+    }
+    else if (md == 4){
+      //Go "Down" in the menu selection.
+      oldselect = select;
+      if (menu == 0){
+        //Main menu. 8 max.
+        select -= 1;
+        if (select == 0){
+          select = 8;
+        }
+      }
+      else if (menu == 1){
+        //Slideshow Time Menu. 13 max.
+        select -= 1;
+        if (select == 0){
+          select = 13;
+        }
+      }
+      else if (menu == 2){
+        //Brightness. 11 Max.
+        select -= 1;
+        if (select == 0){
+          select = 11;
+        }
+      }
+      drawCursor(select, oldselect);
+    }
+  }
+  else if (!bitRead(bobs, 2)){
+    //Button 2 (Far right, next to SD card)
+    if (md == 0){
+      //Badge mode. Increase badge by one.
+      badge += 1;
+      if (badge > 2){
+        //Only three badges.
+        badge = 0; //Increasing, so wrap around.
+      }
+    }
+    else if (md == 1){
+      //Slideshow!
+      //New random image.
+      imgcur = randBMP();
+    }
+    else if (md == 2){
+      //Still image.
+      imgcur += 1; //Increase by one!
+      if (imgcur > imgnum){
+        //We've wrapped around.
         imgcur = 1;
       }
     }
     else if (md == 3){
-      //Flag mode.
+      //Flags!
       flag += 1;
       if (flag > 4){
-        //Wrapping around, like the others.
+        //Wrap around
         flag = 0;
       }
     }
+    else if (md == 4){
+      //Go "Up" in the menu selection.
+      oldselect = select;
+      if (menu == 0){
+        //Main menu. 8 max.
+        select += 1;
+        if (select > 8){
+          select = 1;
+        }
+      }
+      else if (menu == 1){
+        //Slideshow menu. 13 max.
+        select += 1;
+        if (select > 13){
+          select = 1;
+        }
+      }
+      else if (menu == 2){
+        //Brightness menu. 11 max.
+        select += 1;
+        if (select > 11){
+          select = 1;
+        }
+      }
+      drawCursor(select, oldselect);
+    }
   }
-  //Save our settings on a button press.
-  if (!bitRead(bobs, 0) or !bitRead(bobs, 1) or !bitRead(bobs, 2)){
-    x = 0; //Reset our timer so we don't change too quickly.
+  if ((!bitRead(bobs, 0) or !bitRead(bobs,2)) and (md != 4)){
+    //All non-Menu changes require screen update and settings save.
+    bitSet(bobs, 5);
     saveSettings();
   }
 }

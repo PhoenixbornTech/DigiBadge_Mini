@@ -1,9 +1,6 @@
 //Saving and restoring settings, for when power is removed.
 
 void startFlash() {
-  #ifdef DEBUG
-    Serial.println(F("Starting flash memory..."));
-  #endif
   flash.begin();
   readSettings();
 }
@@ -14,17 +11,15 @@ void startFlash() {
 #define bdAddr 2 //Badge: Address 2
 #define flAddr 3 //Flag: Address 3
 #define curAddr 4 //Current image address: 4
+#define brAddr 6 //Current brightness address: 6 (Image takes 2 bytes)
+#define scyAddr 7 //Slideshow cycle count: 7
 
 //Now we want to read the information.
 void readSettings(){
   //Only done on startup.
   //Comes after SD card startup.
-  #ifdef DEBUG
-    Serial.println(F("Loading Settings"));
-  #endif
-  tft.setCursor(0, 63);
-  tft.print(F("Loading Settings"));
   md = flash.readByte(mdAddr); //Mode
+  if (md == 4) md = 0; //Don't start into a menu
   if (!bitRead(bobs, 3) or (imgnum == 0)) {
     //We have no images to load.
     if ((md == 1) or (md == 2)){
@@ -42,14 +37,18 @@ void readSettings(){
       imgcur = 1;
     }
   }
-  tft.print(F("..Done"));
+  bright = flash.readByte(brAddr);
+  if (bright == 0){
+    bright == 70; //"0" would show nothing. So set it to "Default"
+  }
+  scycles = flash.readByte(scyAddr);
+  if (scycles == 0){
+    scycles = 40; //"0" would continually cycle. Set to default of 5s.
+  }
   return;
 }
 
 void saveSettings(){
-  #ifdef DEBUG
-    Serial.println(F("Saving settings..."));
-  #endif
   flash.eraseSector(1); //We need to clear things first.
   flash.writeByte(mdAddr, md); //Save our mode.
   flash.writeByte(bdAddr, badge); //Save our current badge.
@@ -62,5 +61,7 @@ void saveSettings(){
     //We have no current image.
     flash.writeWord(curAddr, 0);
   }
+  flash.writeByte(brAddr, bright); //Brightness
+  flash.writeByte(scyAddr, scycles); //Slideshow Cycles.
   return;
 }

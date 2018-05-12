@@ -3,45 +3,24 @@
 #define minBRT 25
 
 void startTFT() {
-  #ifdef DEBUG
-    Serial.println(F("Starting TFT..."));
-  #endif
-  //tft.init();
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(1);
   tft.fillScreen(ST7735_BLACK);
   tft.setTextColor(ST7735_WHITE);
   tft.setTextWrap(false);
   tft.setTextSize(1);
-  tft.setCursor(0, 0);
-  tft.print(F("DigiBadge Mini Starting..."));
-  tft.setCursor(0, 9);
-  tft.print(F("Made in 2018 by"));
-  tft.setCursor(0, 18);
-  tft.print(F("Phoenixborn Technologies"));
-  tft.setCursor(0, 27);
-  tft.print(F("http://www.pbtech.biz"));
-  tft.setCursor(133, 120);
-  tft.print(cver);
+  drawDevInfo(); //Less size than a separate load screen.
   pinMode(BKLT, OUTPUT);
-  setLight(BRIGHT);
-  #ifdef DEBUG
-    Serial.println(F("TFT Started!"));
-  #endif
+  setLight(bright);
 }
 
 void setLight(byte brt) {
-  brt = map(brt, 0, 255, minBRT, 255);
-  int bpct = (brt * 100) / 255; //To avoid flipping between int and float, adjust the brightness up.
+  brt = map(brt, 0, 100, 0, 255);
+  byte bpct = (brt * 100) / 255; //To avoid flipping between int and float, adjust the brightness up.
   analogWrite(6, brt);
-  #ifdef DEBUG
-    Serial.print(F("Backlight set to "));
-    Serial.print(bpct);
-    Serial.println(F("%"));
-  #endif
 }
 
-void drawLowBat(int x, int y) {
+void drawLowBat(byte x, byte y) {
   //Draws a low battery symbol with top-left at X,Y.
   //This is designed to be a bit intrusive
   //However, it IS designed to be a bit out of the way so it won't cover up a badge.
@@ -62,7 +41,7 @@ void drawCritBat() {
   tft.fillRect(18, 42, 111, 44, ST7735_BLACK);
 }
 
-void drawPlayIcon(int X, int Y) {
+void drawPlayIcon(byte X, byte Y) {
   //Draws a "Play" symbol to show it's in slideshow mode
   //As with drawLowBat, top/left is at X,Y
   //Originally displayed: X 146, Y 2
