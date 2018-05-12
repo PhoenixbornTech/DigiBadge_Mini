@@ -51,7 +51,7 @@ void drawMainMenu(){
   tft.print(F("DigiBadge Mini"));
   tft.setCursor(12,9); //Line 1
   tft.setTextColor(MENU_TXT);
-  tft.print(F("Color Comm. Badges"));
+  tft.print(F("Color Badges"));
   tft.setCursor(12,18); //Line 2
   tft.print(F("Pride Flags"));
   tft.setCursor(12,45); //Line 5. We skip Image/Slideshow to only have to change colors once. Saves program space.
@@ -61,7 +61,7 @@ void drawMainMenu(){
   tft.setCursor(12,63); //Line 7
   tft.print(F("Brightness"));
   tft.setCursor(12,72); //Line 8
-  tft.print(F("Sleep"));
+  tft.print(F("Power Off"));
   tft.setCursor(12,27); //Line 3
   if (imgnum == 0) {
     //We have no images. "Disable" slideshow options.
@@ -85,7 +85,7 @@ void drawSlideSpeed(){
     tft.print(F(" Second"));
   }
   tft.setCursor(12,117); //Last line!
-  tft.print(F("Main"));
+  tft.print(F("Main Menu"));
 }
 
 void drawBrightness(){
@@ -101,7 +101,7 @@ void drawBrightness(){
     tft.print(F("%"));
   }
   tft.setCursor(12,99);
-  tft.print(F("Main"));
+  tft.print(F("Main Menu"));
 }
 
 void drawDevInfo(){
@@ -147,7 +147,7 @@ void drawDevInfo(){
   tft.print(bright);
   tft.print(F("%"));
   tft.setCursor(0,72);
-  tft.print(F("www.pbtech.biz"));
+  tft.print(F("For source visit\nwww.pbtech.biz"));
   //tft.setCursor(0,81);
   //tft.print(F("www.pbtech.biz"));
 }

@@ -92,13 +92,6 @@ uint16_t randBMP(){
   }
 }
 
-void dispBMP(unsigned int bmpnum){
-  bmpDraw(grabBMP(bmpnum),0,0);
-  if (md == 1){
-    drawPlayIcon(146,2);
-  }
-}
-
 uint16_t numBMP(char* filename){
   uint16_t count = 0;
   File dir = SD.open("/");

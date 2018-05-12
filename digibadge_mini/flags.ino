@@ -2,16 +2,7 @@ void drawFlag(byte f) {
   //Draws a particular flag.
   //Flags are various sexual Pride flags.
   //Valid numbers are 0-4
-  if (f == 0) {
-    //LGBT Pride flag
-    tft.fillRect(0, 0, 160, 22, 0xD801); //Pride Red
-    tft.fillRect(0, 22, 160, 21, 0xFBC1); //Pride Orange
-    tft.fillRect(0, 43, 160, 21, 0xFF61); //Pride Yellow
-    tft.fillRect(0, 64, 160, 21, 0x0B83); //Pride Green
-    tft.fillRect(0, 85, 160, 21, 0x015F); //Pride Roayl Blue
-    tft.fillRect(0, 106, 160, 22, 0x600E); //Pride Violet
-  }
-  else if (f == 1) {
+  if (f == 1) {
     //Bi Flag
     tft.fillRect(0, 0, 160, 51, 0xD00F);
     tft.fillRect(0, 51, 160, 26, 0x7272);
@@ -37,6 +28,16 @@ void drawFlag(byte f) {
     tft.fillRect(0, 32, 160, 32, 0xA514);
     tft.fillRect(0, 64, 160, 32, ST7735_WHITE);
     tft.fillRect(0, 96, 160, 32, 0x8010);
+  }
+  else {
+    //LGBT Pride flag
+    //Use as default in case we get our numbers borked.
+    tft.fillRect(0, 0, 160, 22, 0xD801); //Pride Red
+    tft.fillRect(0, 22, 160, 21, 0xFBC1); //Pride Orange
+    tft.fillRect(0, 43, 160, 21, 0xFF61); //Pride Yellow
+    tft.fillRect(0, 64, 160, 21, 0x0B83); //Pride Green
+    tft.fillRect(0, 85, 160, 21, 0x015F); //Pride Roayl Blue
+    tft.fillRect(0, 106, 160, 22, 0x600E); //Pride Violet
   }
   if (bitRead(bobs,6)) {
     //If our battery is low, show the low battery symbol

@@ -26,17 +26,13 @@
 #define CritV 2700 //Critical Voltage. Shut down below this.
 #define LLEN 125 //Milliseconds the loop waits for.
 #define VLEN 16 //Number of cycles before checking battery. 16 cycles at 125ms is about once every two seconds..
-#define CLEN 40 //Cycle length. How many times the loop runs before changing the slideshow.
-//#define DEBUG //Uncomment for debugging. And by debugging I mean "Serial" 
-              //Be warned! It takes a bit of storage space and variable memory.
-              //Current check is ~6% of Program Storage Space and ~6% of dynamic memory.
 
 //Set up TFT and Flash
 Adafruit_ST7735 tft = Adafruit_ST7735(10, 9, -1);
 SPIFlash flash(FLCS);
 
 //Common strings.
-#define cver F("v1.1") //Code version.
+#define cver F("v1.2") //Code version.
 
 //Variables.
 byte x = 0;
@@ -126,13 +122,16 @@ void updateScreen(){
     drawBadge(badge);
   }
   else if ((md == 1) or (md == 2)){
-    dispBMP(imgcur);
+    bmpDraw(grabBMP(imgcur),0,0);
   }
   else if (md == 3){
     drawFlag(flag);
   }
   else if (md == 4){
     drawMenu(menu, select);
+  }
+  if (md == 1){
+    drawPlayIcon(146,2);
   }
 }
 
@@ -166,8 +165,9 @@ void getButtons() {
     bitSet(bobs, 3);
     if (bitRead(bobs, 3) and (!bitRead(oldbobs, 3))){
       //We now have an SD card, when we didn't before.
-      //Reset the device.
-      forceRST();
+      //Attempt to re-start the SD card.
+      startSD();
+      bitSet(bobs, 5); //This makes it easy to notice things have loaded. Especially in a menu.
     }
   }
   else {
@@ -177,6 +177,7 @@ void getButtons() {
       //We can't use images now.
       imgnum = 0;
       imgcur = 0;
+      bitSet(bobs, 5); //As with above, makes it more noticeable that things have changed.
     }
   }
 }

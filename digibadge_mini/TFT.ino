@@ -16,7 +16,6 @@ void startTFT() {
 
 void setLight(byte brt) {
   brt = map(brt, 0, 100, 0, 255);
-  byte bpct = (brt * 100) / 255; //To avoid flipping between int and float, adjust the brightness up.
   analogWrite(6, brt);
 }
 
@@ -29,16 +28,6 @@ void drawLowBat(byte x, byte y) {
   tft.fillRect(x, y, x + 22, y + 11, ST7735_BLACK);
   tft.fillRect(x + 2, y + 2, x + 16, y + 7, ST7735_RED);
   tft.fillRect(x + 18, y + 4, x + 2, y + 3, ST7735_RED);
-  tft.drawLine(x + 8, y + 10, x + 13, y, ST7735_BLACK);
-  tft.drawLine(x + 7, y + 10, x + 12, y, ST7735_BLACK);
-}
-
-void drawCritBat() {
-  //Fills the screen with a low battery symbol.
-  tft.fillScreen(ST7735_BLACK);
-  tft.fillRect(15, 39, 117, 50, ST7735_RED);
-  tft.fillRect(132, 52, 14, 24, ST7735_RED);
-  tft.fillRect(18, 42, 111, 44, ST7735_BLACK);
 }
 
 void drawPlayIcon(byte X, byte Y) {
