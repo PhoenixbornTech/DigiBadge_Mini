@@ -1,4 +1,4 @@
-void drawBadge(int b) {
+void drawBadge(byte b) {
   //Color Communication Badges
   //Valid numbers are... Any (Realistically 0-2)
   //For more information, see
@@ -9,9 +9,6 @@ void drawBadge(int b) {
   tft.setTextColor(ST7735_BLACK);
   if (b == 1) {
     //Red badge.
-    #ifdef DEBUG
-      Serial.println(F("Displaying RED badge"));
-    #endif
     tft.fillScreen(ST7735_RED);
     tft.fillRect(53, 18, 54, 54, ST7735_BLACK);
     tft.fillRect(56, 21, 48, 48, ST7735_WHITE);
@@ -20,9 +17,6 @@ void drawBadge(int b) {
   }
   else if (b == 2) {
     //Green badge
-    #ifdef DEBUG
-      Serial.println(F("Displaying GREEN badge"));
-    #endif
     tft.fillScreen(ST7735_GREEN);
     tft.fillCircle(80, 45, 27, ST7735_BLACK);
     tft.fillCircle(80, 45, 24, ST7735_WHITE);
@@ -32,18 +26,14 @@ void drawBadge(int b) {
   else {
     //Yellow badge.
     //Default to this.
-    #ifdef DEBUG
-      Serial.println(F("Displaying YELLOW badge"));
-    #endif
     tft.fillScreen(ST7735_YELLOW);
     tft.fillRect(22, 26, 116, 25, ST7735_BLACK);
     tft.fillRect(25, 29, 110, 19, ST7735_WHITE);
     tft.setCursor(28, 85);
     tft.print(F("YELLOW"));
   }
-  //Set colors back to default.
-  //tft.setTextSize(1);
-  //tft.setTextColor(ST7735_WHITE);
+  //Set size back to default.
+  tft.setTextSize(1);
   if (bitRead(bobs,6)) {
     //If our battery is low, show the low battery symbol
     drawLowBat(0, 0);

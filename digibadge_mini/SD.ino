@@ -1,7 +1,4 @@
 void startSD(){
-  #ifdef DEBUG
-    Serial.print(F("Checking SD Card..."));
-  #endif
   //We haven't checked any buttons yet, so do it manually.
   if (!digitalRead(SDCD)) {
     //We have an SD card physically present. Attempt to start it.
@@ -16,8 +13,8 @@ void startSD(){
   }
 }
 
-unsigned int countBMP(){
-  unsigned int bmpcount = 0;
+uint16_t countBMP(){
+  uint16_t bmpcount = 0;
   //Open directory, then rewind it. Just in case someone hasn't been kind.
   File dir = SD.open("/");
   dir.rewindDirectory();
@@ -70,7 +67,7 @@ bool bmpCheck(File bmpFile) {
   }
 }
 
-unsigned int randBMP(){
+uint16_t randBMP(){
   //Returns a random image number.
   //Makes sure we don't pull the current or previous image, unless there are only two images.
   if (imgnum == 1){
@@ -87,7 +84,7 @@ unsigned int randBMP(){
     }
   }
   else {
-    unsigned int res = random(1,imgnum+1);
+    uint16_t res = random(1,imgnum+1);
     while (res == imgcur){
       res = random(1,imgnum+1);
     }
@@ -102,12 +99,8 @@ void dispBMP(unsigned int bmpnum){
   }
 }
 
-unsigned int numBMP(char* filename){
-  #ifdef DEBUG
-    Serial.print(F("Finding image "));
-    Serial.println(filename);
-  #endif
-  unsigned int count = 0;
+uint16_t numBMP(char* filename){
+  uint16_t count = 0;
   File dir = SD.open("/");
   dir.rewindDirectory();
   File fi = dir.openNextFile();
@@ -131,17 +124,13 @@ unsigned int numBMP(char* filename){
   return 0;
 }
 
-char* grabBMP(unsigned int bmpnum){
+char* grabBMP(uint16_t bmpnum){
   if (bmpnum > imgnum) {
     //We don't have that many images.
     //Retrieve the last one.
     bmpnum = imgnum;
   }
-  #ifdef DEBUG
-    Serial.print(F("Retrieving BMP number "));
-    Serial.println(bmpnum);
-  #endif
-  unsigned int count = 0;
+  uint16_t count = 0;
   File dir = SD.open("/");
   dir.rewindDirectory();
   char* bmpName;
@@ -153,10 +142,6 @@ char* grabBMP(unsigned int bmpnum){
       if (count == bmpnum){
         //The file we want
         bmpName = fi.name();
-        #ifdef DEBUG
-          Serial.print(F("Found "));
-          Serial.println(bmpName);
-        #endif
         fi.close();
         dir.rewindDirectory();
         dir.close();

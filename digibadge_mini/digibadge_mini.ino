@@ -18,9 +18,6 @@
 #define SDCS 7 //Chip Select for SD card
 #define SDCD 8 //Card Detect line for SD card
 #define FLCS 5 //Chip Select for Flash memory.
-#define BAUD 74880 //Baud rate for serial communication.
-                   //I like 74880 because it's what ESP modules use for their debug.
-                   //And I can keep everything on one setting.
 #define B0 2 //Button 0, or far left when viewing screen
 #define B1 3 //Button 1, or center button
 #define B2 4 //Button 2, or far right/next to SD card
@@ -39,14 +36,11 @@ Adafruit_ST7735 tft = Adafruit_ST7735(10, 9, -1);
 SPIFlash flash(FLCS);
 
 //Common strings.
-const char* cver = "v1.0"; //Code version.
-const char* exTXT = "Exit Menu";
-const char* sdly = "Slideshow Delay";
-const char* brght = "Brightness";
+#define cver F("v1.1") //Code version.
 
 //Variables.
-int x = 0;
-int scycles = 40; //Number of cycles it waits for slideshow.
+byte x = 0;
+byte scycles = 40; //Number of cycles it waits for slideshow.
 byte bright = 10; //Brightness amount, in percent
 byte md = 0; //Mode: 0 = Badge, 1 = Slideshow, 2 = Static Image, 3 = Flags
 byte oldmd = 0; //Old mode. For when you enter the menu and just want to exit it.
@@ -63,21 +57,14 @@ byte bobs = 0; //Byte that stores bools as bits.
                 //Bit 6 is "Low Battery"
                 //Bit 7 is "Just Woke"
 byte oldbobs = 0; //Storing previous buttons, to check against.
-unsigned int imgnum = 0; //How many images we have.
-unsigned int imgcur = 0; //Current image we are displaying.
+uint16_t imgnum = 0; //How many images we have.
+uint16_t imgcur = 0; //Current image we are displaying.
 
 void setup() {
   pinMode(B0, INPUT_PULLUP);
   pinMode(B1, INPUT_PULLUP);
   pinMode(B2, INPUT_PULLUP);
   pinMode(SDCD, INPUT_PULLUP);
-  #ifdef DEBUG
-    Serial.begin(BAUD);
-    Serial.println(F("DigiBadge Mini"));
-    Serial.print(F("Software "));
-    Serial.println(cver);
-    Serial.println(F("Debug Engabled"));
-  #endif
   startFlash();
   startSD();
   startTFT();
@@ -90,9 +77,6 @@ void loop() {
   x += 1;
   if (bitRead(bobs, 7)) {
     //We just woke up, so remove the interrupt and turn the screen back on.
-    #ifdef DEBUG
-      Serial.println(F("Waking")); 
-    #endif
     detachInterrupt(BWK); //Remove the interrupt.
     digitalWrite(6, HIGH);
     bitClear(bobs,7);
@@ -154,10 +138,6 @@ void updateScreen(){
 
 void getButtons() {
   //Uses the first three bits of byte "bobs" as bools for buttons.
-  //Serial comments left out because they're super spammy.
-  //#ifdef DEBUG
-  //  Serial.println(F("Gathering buttons."));
-  //#endif
   oldbobs = bobs; //Store the previous iterations.  
   //Button 0. Left side facing screen.
   if (digitalRead(B0)){
@@ -214,18 +194,10 @@ long getBattery(){
   uint8_t high = ADCH; // unlocks both
   long mV = (high << 8) | low;
   mV = 1125300L / mV; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
-  //#ifdef DEBUG
-  //  Serial.print(F("Battery voltage is "));
-  //  Serial.print(mV);
-  //  Serial.println(F(" millivolts"));
-  //#endif
   if (mV <= LowV){
     //We have low voltage.
     //Batteries are still fairly good, but backlight power starts waning quite fast.
     bitSet(bobs, 6);
-    #ifdef DEBUG
-      Serial.println(F("WARNING: Low batteries!"));
-    #endif
   }
   else if ((mV > (LowV + 250)) and bitRead(bobs, 6)){
     //If "Low Battery" bit is set, and we are now higher than the Low Voltage, clear the low battery alert.
@@ -236,9 +208,6 @@ long getBattery(){
   if (mV <= CritV){
     //We turn off at this point.
     //As we check the battery voltage fairly often, we can just shut off.
-    #ifdef DEBUG
-      Serial.println(F("Battery critical, shutting down."));
-    #endif
     digitalWrite(6, LOW);
     attachInterrupt(BWK, wakeUp, LOW);
     delay(300);
@@ -316,7 +285,6 @@ void runButtons(){
           //Exiting this menu.
           select = 1;
           menu = 0;
-          //saveSettings();
         }
       }
       else if (menu == 2){
@@ -334,7 +302,6 @@ void runButtons(){
           //Exit this menu. Save settings.
           select = 1;
           menu = 0;
-          //saveSettings();
         }
       }
       else if (menu == 3){

@@ -25,35 +25,21 @@ void drawMenu(byte menu, byte sel){
   else if (menu == 3){
     drawDevInfo();
   }
-  //Commented out to save space
-  /*else {
-    drawMainMenu(); //Default to main menu.
-  }*/
   drawCursor(sel, 0); //We're re-drawing the menu, so don't worry about erasing the old selection.
 }
-
-//MENU LIST. TODO, obviously. I feel like text will eat into program memory quickly.
-/* 14 rows at 9px height (8px text plus 1px extra padding. Looks nicer.
- * Slideshow speed - Title, Exit, 12 settings (1s intervals?)
- * Mode select - Title, Exit, 4 selections (Mark invalid options?)
- * Stats (Battery voltage, etc) - Title, Exit, no other selections (Just looking!)
- * Brightness - Title, Exit, 10% intervals (10, 20, etc)
- * Main Menu (Select above menus, exit menu, power off)
- * 
- */
 
 void drawCursor(byte sel, byte oldsel){
   //Displays the current cursor.
   //We use "0" to hide it.
   if (oldsel != 0){
-    tft.setCursor(6,9*oldsel);
+    tft.setCursor(0,9*oldsel);
     tft.setTextColor(MENU_BGND); //Adjust the color.
-    tft.print(F(">"));
+    tft.print(F("->"));
   }
   if (sel != 0){
-    tft.setCursor(6,9*sel); //Set the cursor to the appropriate line.
+    tft.setCursor(0,9*sel); //Set the cursor to the appropriate line.
     tft.setTextColor(MENU_SELECT); //Adjust the color.
-    tft.print(F(">"));
+    tft.print(F("->"));
   }
 }
 
@@ -65,28 +51,25 @@ void drawMainMenu(){
   tft.print(F("DigiBadge Mini"));
   tft.setCursor(12,9); //Line 1
   tft.setTextColor(MENU_TXT);
-  tft.print(F("Badge Mode"));
+  tft.print(F("Color Comm. Badges"));
   tft.setCursor(12,18); //Line 2
-  tft.print(F("Flag Mode"));
+  tft.print(F("Pride Flags"));
+  tft.setCursor(12,45); //Line 5. We skip Image/Slideshow to only have to change colors once. Saves program space.
+  tft.print(F("Badge Info"));
+  tft.setCursor(12,54); //Line 6
+  tft.print(F("Slide Delay"));
+  tft.setCursor(12,63); //Line 7
+  tft.print(F("Brightness"));
+  tft.setCursor(12,72); //Line 8
+  tft.print(F("Sleep"));
   tft.setCursor(12,27); //Line 3
   if (imgnum == 0) {
     //We have no images. "Disable" slideshow options.
     tft.setTextColor(MENU_INVAL); //Can go without, since this is first one.
   }
-  tft.print(F("Image Mode"));
+  tft.print(F("Still Image"));
   tft.setCursor(12,36); //Line 4
-  tft.print(F("Slideshow Mode"));
-  tft.setTextColor(MENU_TXT); //We may not have change it, but oh well. Easier to just reset it anyway.
-  tft.setCursor(12,45); //Line 5
-  tft.print(F("Device Info"));
-  tft.setCursor(12,54); //Line 6
-  tft.print(sdly);
-  tft.setCursor(12,63); //Line 7
-  tft.print(brght);
-  tft.setCursor(12,72); //Line 8
-  tft.print(F("Power Down"));
-  //tft.setCursor(12,81); //Line 9
-  //tft.print(exTXT);
+  tft.print(F("Slideshow"));
 }
 
 void drawSlideSpeed(){
@@ -94,18 +77,15 @@ void drawSlideSpeed(){
   tft.fillScreen(MENU_BGND);
   tft.setCursor(0,0);
   tft.setTextColor(MENU_TITLE);
-  tft.print(sdly);
+  tft.print(F("Slide Delay"));
   tft.setTextColor(MENU_TXT);
   for(byte i = 1; i <= 12; i++){
     tft.setCursor(12,i*9);
     tft.print(i);
     tft.print(F(" Second"));
-    /*if (i != 1){
-      tft.print(F("s"));
-    }*/
   }
   tft.setCursor(12,117); //Last line!
-  tft.print(exTXT);
+  tft.print(F("Main"));
 }
 
 void drawBrightness(){
@@ -113,7 +93,7 @@ void drawBrightness(){
   tft.fillScreen(MENU_BGND);
   tft.setCursor(0,0);
   tft.setTextColor(MENU_TITLE);
-  tft.print(brght);
+  tft.print(F("Brightness"));
   tft.setTextColor(MENU_TXT);
   for(byte x = 1; x <=10; x++){
     tft.setCursor(12,x*9);
@@ -121,7 +101,7 @@ void drawBrightness(){
     tft.print(F("%"));
   }
   tft.setCursor(12,99);
-  tft.print(exTXT);
+  tft.print(F("Main"));
 }
 
 void drawDevInfo(){
@@ -156,11 +136,19 @@ void drawDevInfo(){
     tft.print(F("No"));
   }
   tft.setCursor(0,36);
-  tft.print(F("Images Loaded: "));
+  tft.print(F("Images: "));
   tft.print(imgnum);
-  tft.setCursor(0,63);
-  tft.print(F("For source files and info"));
+  tft.setCursor(0,45);
+  tft.print(F("Slide Delay: "));
+  tft.print(scycles / 8);
+  tft.print(F("s"));
+  tft.setCursor(0,54);
+  tft.print(F("Backlight: "));
+  tft.print(bright);
+  tft.print(F("%"));
   tft.setCursor(0,72);
-  tft.print(F("See http://www.pbtech.biz"));
+  tft.print(F("www.pbtech.biz"));
+  //tft.setCursor(0,81);
+  //tft.print(F("www.pbtech.biz"));
 }
 
