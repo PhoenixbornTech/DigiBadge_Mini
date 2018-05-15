@@ -31,8 +31,9 @@
 Adafruit_ST7735 tft = Adafruit_ST7735(10, 9, -1);
 SPIFlash flash(FLCS);
 
-//Common strings.
-#define cver F("v1.2") //Code version.
+//Code version.
+//The byte or two extra in the code is used to allow slight variations in string size.
+#define cver F("v1.2a")
 
 //Variables.
 byte x = 0;
@@ -228,6 +229,7 @@ void runButtons(){
     bitSet(bobs, 5); //We're changing menus, or modes.
     //If we're in a non-Menu mode, bring us to Menu mode.
     if(md != 4){
+      oldmd = md;
       md = 4;
       menu = 0;
       select = 1;
