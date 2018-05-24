@@ -1,7 +1,7 @@
 void drawFlag(byte f) {
   //Draws a particular flag.
   //Flags are various sexual Pride flags.
-  //Valid numbers are 0-4
+  //Valid numbers are 0-4, but will error check.
   if (f == 1) {
     //Bi Flag
     tft.fillRect(0, 0, 160, 51, 0xD00F);

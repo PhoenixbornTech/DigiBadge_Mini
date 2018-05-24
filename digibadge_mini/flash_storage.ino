@@ -18,16 +18,22 @@ void startFlash() {
 void readSettings(){
   //Only done on startup.
   //Comes after SD card startup.
-  md = flash.readByte(mdAddr); //Mode
-  if (md == 4) md = 0; //Don't start into a menu
-  if (!bitRead(bobs, 3) or (imgnum == 0)) {
-    //We have no images to load.
+  if (!bitRead(bobs, 3) or (imgnum == 0) or (md > 3)) {
+    //We have no images to load, or are in Menu mode, or have an erroneous value
     if ((md == 1) or (md == 2)){
       md = 0; //Reset back to Badge mode.
     }
   }
   badge = flash.readByte(bdAddr); //Badge
+  if (badge > 2) {
+    //Only 3 valid badges. Badges do error check, but with a borked value it'll show the same one twice in a row.
+    badge = 0;
+  }
   flag = flash.readByte(flAddr); //Flag
+  if (flag > 4) {
+    //Only 5 valid flags. Same as badges with error checking.
+    flag = 0;
+  }
   if (imgnum > 0) {
     //Only do these if we have a loaded SD card.
     imgcur = flash.readWord(curAddr); //Current image.
@@ -38,12 +44,14 @@ void readSettings(){
     }
   }
   bright = flash.readByte(brAddr);
-  if (bright == 0){
+  if ((bright == 0) or (bright >100)){
     bright == 70; //"0" would show nothing. So set it to "Default"
+                  //Higher than 100 isn't valid.
   }
   scycles = flash.readByte(scyAddr);
-  if (scycles == 0){
+  if ((scycles == 0) or (scycles > 96)){
     scycles = 40; //"0" would continually cycle. Set to default of 5s.
+                  //96 is the max default option, so higher than this is an error.
   }
   return;
 }

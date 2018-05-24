@@ -1,6 +1,6 @@
 void drawBadge(byte b) {
   //Color Communication Badges
-  //Valid numbers are... Any (Realistically 0-2)
+  //Valid numbers are 0, 1, & 2, but will error check itself.
   //For more information, see
   //https://autisticadvocacy.org/wp-content/uploads/2014/02/ColorCommunicationBadges.pdf
   //

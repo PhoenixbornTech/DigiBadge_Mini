@@ -5,10 +5,10 @@
 //-Flash startup
 
 //Libraries for TFT, SPI, SD, and flash.
-#include <Adafruit_GFX.h>     //https://github.com/adafruit/Adafruit-GFX-Library
-#include <Adafruit_ST7735.h>  //https://github.com/adafruit/Adafruit-ST7735-Library
-#include <LowPower.h>         //https://github.com/rocketscream/Low-Power
-#include <SPIFlash.h>         //https://github.com/Marzogh/SPIFlash
+#include <Adafruit_GFX.h>     // https://github.com/adafruit/Adafruit-GFX-Library
+#include <Adafruit_ST7735.h>  // https://github.com/adafruit/Adafruit-ST7735-Library
+#include <LowPower.h>         // https://github.com/rocketscream/Low-Power
+#include <SPIMemory.h>         // https://github.com/Marzogh/SPIMemory
 #include <SPI.h>
 #include <SD.h>
 
