@@ -29,6 +29,23 @@ void drawFlag(byte f) {
     tft.fillRect(0, 64, 160, 32, ST7735_WHITE);
     tft.fillRect(0, 96, 160, 32, 0x8010);
   }
+  else if (f == 5) {
+    //Nonbinary Flag
+    tft.fillRect(0, 0, 160, 32, ST7735_YELLOW);
+    tft.fillRect(0, 32, 160, 32, ST7735_WHITE);
+    tft.fillRect(0, 64, 160, 32, 0x9AD9); //Light Purple
+    tft.fillRect(0, 96, 160, 32, 0x2965); //Not quite black
+  }
+  else if (f == 6) {
+    //Agender Flag
+    tft.fillRect(0, 0, 160, 19, ST7735_BLACK);
+    tft.fillRect(0, 19, 160, 18, 0xBE38); //Light grey
+    tft.fillRect(0, 37, 160, 18, ST7735_WHITE);
+    tft.fillRect(0, 55, 160, 18, 0xBFB0); //Lime green ish?
+    tft.fillRect(0, 73, 160, 18, ST7735_WHITE);
+    tft.fillRect(0, 91, 160, 18, 0xBE38); //Same light grey
+    tft.fillRect(0, 109, 160, 19, ST7735_BLACK);
+  }
   else {
     //LGBT Pride flag
     //Use as default in case we get our numbers borked.

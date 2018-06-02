@@ -33,7 +33,7 @@ SPIFlash flash(FLCS);
 
 //Code version.
 //The byte or two extra in the code is used to allow slight variations in string size.
-#define cver F("v1.2a")
+#define cver F("v1.2b")
 
 //Variables.
 byte x = 0;
@@ -62,8 +62,8 @@ void setup() {
   pinMode(B1, INPUT_PULLUP);
   pinMode(B2, INPUT_PULLUP);
   pinMode(SDCD, INPUT_PULLUP);
-  startFlash();
   startSD();
+  startFlash();
   startTFT();
   delay(2500); //Pause so we can actually SEE the screen.
   updateScreen();
@@ -341,9 +341,9 @@ void runButtons(){
     else if (md == 3){
       //Flags!
       flag -= 1;
-      if (flag > 4){
+      if (flag > 6){
         //Wrap around
-        flag = 4;
+        flag = 6;
       }
     }
     else if (md == 4){
@@ -399,7 +399,7 @@ void runButtons(){
     else if (md == 3){
       //Flags!
       flag += 1;
-      if (flag > 4){
+      if (flag > 6){
         //Wrap around
         flag = 0;
       }

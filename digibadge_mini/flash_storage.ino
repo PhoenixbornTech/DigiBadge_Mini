@@ -18,6 +18,7 @@ void startFlash() {
 void readSettings(){
   //Only done on startup.
   //Comes after SD card startup.
+  md = flash.readByte(mdAddr); //Mode
   if (!bitRead(bobs, 3) or (imgnum == 0) or (md > 3)) {
     //We have no images to load, or are in Menu mode, or have an erroneous value
     if ((md == 1) or (md == 2)){
@@ -30,8 +31,8 @@ void readSettings(){
     badge = 0;
   }
   flag = flash.readByte(flAddr); //Flag
-  if (flag > 4) {
-    //Only 5 valid flags. Same as badges with error checking.
+  if (flag > 6) {
+    //Only 7 valid flags. Same as badges with error checking.
     flag = 0;
   }
   if (imgnum > 0) {
