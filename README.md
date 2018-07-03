@@ -45,6 +45,6 @@ The DigiBadge also includes a variety of Pride Flags for users to display. Only 
 
 There are currently *seven* Pride Flags built in to the DigiBadge Mini, in the order they appear: The **LGBT+ Flag**, the **Bisexual Flag**, the **Transexual Flag**, the **Pansexual Flag**, the **Asexual Flag**, the **Nonbinary Flag** and the **Agender Flag**.
 
-##Image and Slideshow Modes
+## Image and Slideshow Modes
 
 The Image and Slideshow modes are closely related. Both of them display 24-bit BMP images loaded from the SD card. Both of them will be skipped if no SD card is present. The difference is that the **Static Image** mode will display the image until told to change. The **Slideshow** mode will display a new semi-random image (It won't pick the current or previous image) every few seconds, and will display a "Play" icon in the corner.
