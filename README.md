@@ -18,17 +18,20 @@ After selling these at BABSCon and getting some real-world usage out of them, th
  - Adding a voltage regulator. This will allow for consistent backlight brightness and utilizing more of the battery for a longer battery life. This will also allow for LiPo batteries to be used as well.
  
 ## How it works
-With the current versions of the code, the DigiBadge works in a fairly straightforward manner.
+
+With the latest releases, the DigiBadge operates using a Menu system that should be fairly straightforward.
+
+From within a mode, pressing the left or right buttons will change which badge/flag/image is displayed, while pressing the center button will access the menu.
+
+While in the Menu, pressing the left button (When looking at the screen) moves the cursor up, pressing the right button moves the cursor down, and the center button accesses the current selection. If the selection is a mode, the badge goes to that mode. If it is another menu, such as brightness, it goes into that menu.
+
+Bear in mind that while the Slideshow Time menu will automatically return to the main menu on making a selection, **Brightness will not**. This is so you can select a brightness and see the difference. Exiting the menu locks the selection in.
  
-Button 0, on the far left of the top side (When looking at the screen), will turn the device on or off. As the device doesn't truly power down, it will remember what **mode** and what **image** or **badge** it was at. Currently, these will be reset when the device resets, such as when a new SD card is inserted.
+The DigiBadge has four modes, in the order that they cycle through: **Color Communication Badge**, **Image Slideshow**, **Static Image**, and **Pride Flags**. Image Slideshow and Static Images are inaccessible (And greyed out) when there is no SD card detected.
+
+The DigiBadge will *automatically* load the SD card when it is inserted. Thanks to moderately recent updates to the default Arduino library, this no longer requires edits to the SD library.
  
-Button 1, in the center, will change what **mode** the device is in.
- 
-Button 2, on the far right next to the SD slot, will change what **image** or **badge** is currently being displayed.
- 
-The DigiBadge has four modes, in the order that they cycle through: **Color Communication Badge**, **Image Slideshow**, **Static Image**, and **Pride Flags**.
- 
-##Color Communication Badges
+## Color Communication Badges
  
 Color Communication Badges were *inspired* by BronyCon's use of them, but they were *originated* by the Autism Self-Advocacy Network. You can read what ASAN has to say on the Color Communication Badges on [their website](http://autisticadvocacy.org/2014/02/color-communication-badges/).
  
@@ -36,11 +39,11 @@ The badges on the DigiBadge are not identical to ASAN or BronyCon versions, as t
 
 What you see on the DigiBadge is not an image file - It's programatically created each time it is displayed.
  
-##Pride Flags
+## Pride Flags
  
 The DigiBadge also includes a variety of Pride Flags for users to display. Only a few flags were omitted, and those were ones that would be difficult to display programatically. As with the Color Communication Badges, these are created each time they are displayed.
 
-There are currently *five* Pride Flags built in to the DigiBadge Mini, in the order they appear: The **LGBT+ Flag**, the **Bisexual Flag**, the **Transexual Flag**, the **Pansexual Flag**, and the **Asexual Flag**.
+There are currently *seven* Pride Flags built in to the DigiBadge Mini, in the order they appear: The **LGBT+ Flag**, the **Bisexual Flag**, the **Transexual Flag**, the **Pansexual Flag**, the **Asexual Flag**, the **Nonbinary Flag** and the **Agender Flag**.
 
 ##Image and Slideshow Modes
 
