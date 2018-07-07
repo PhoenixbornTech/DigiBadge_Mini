@@ -26,6 +26,8 @@ void drawBadge(byte b) {
   else {
     //Yellow badge.
     //Default to this.
+    //Also fix.
+    badge = 0;
     tft.fillScreen(ST7735_YELLOW);
     tft.fillRect(22, 26, 116, 25, ST7735_BLACK);
     tft.fillRect(25, 29, 110, 19, ST7735_WHITE);

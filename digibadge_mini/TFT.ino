@@ -9,14 +9,20 @@ void startTFT() {
   tft.setTextColor(ST7735_WHITE);
   tft.setTextWrap(false);
   tft.setTextSize(1);
-  drawDevInfo(); //Less size than a separate load screen.
   pinMode(BKLT, OUTPUT);
   setLight(bright);
+  drawDevInfo(); //Move to after backlight, for backlight-fixing things.
 }
 
 void setLight(byte brt) {
-  brt = map(brt, 0, 100, 0, 255);
+  if (brt > 100) {
+    //Invalid brightness. Set to a default value.
+    brt = 50;
+    bright = 50; //We only ever pass Bright to this, so that means a borked Bright setting.
+  }
+  brt = map(brt, 0, 100, 25, 255); //Set a floor to brightness, so we can always see something.
   analogWrite(6, brt);
+  return;
 }
 
 void drawLowBat(byte x, byte y) {

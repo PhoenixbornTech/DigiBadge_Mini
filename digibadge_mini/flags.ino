@@ -49,6 +49,8 @@ void drawFlag(byte f) {
   else {
     //LGBT Pride flag
     //Use as default in case we get our numbers borked.
+    //Also fix the number.
+    flag = 0;
     tft.fillRect(0, 0, 160, 22, 0xD801); //Pride Red
     tft.fillRect(0, 22, 160, 21, 0xFBC1); //Pride Orange
     tft.fillRect(0, 43, 160, 21, 0xFF61); //Pride Yellow

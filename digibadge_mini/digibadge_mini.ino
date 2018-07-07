@@ -33,7 +33,7 @@ SPIFlash flash(FLCS);
 
 //Code version.
 //The byte or two extra in the code is used to allow slight variations in string size.
-#define cver F("v1.2b")
+#define cver F("v1.2c")
 
 //Variables.
 byte x = 0;
